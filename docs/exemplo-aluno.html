@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Meu primeiro cliente de API</title>
+<style>body{font:18px Arial,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#20352f}input{display:block;width:100%;box-sizing:border-box;margin:10px 0 15px;padding:12px;font-size:16px}button{padding:12px 18px;background:#17795e;color:white;border:0;border-radius:6px;font-size:16px;cursor:pointer}pre{padding:20px;background:#eef4ed;white-space:pre-wrap;overflow-wrap:anywhere}p{line-height:1.6}</style></head>
+<body><h1>Meu primeiro cliente de API</h1><p>Este HTML pode rodar no seu computador. Os empréstimos estão no servidor. Cole a chave obtida em <b>Minha chave</b> no laboratório. Use dados fictícios.</p>
+<label for="chave">Sua chave de acesso</label><input id="chave" type="password" autocomplete="off" placeholder="Cole aqui sua chave de 64 caracteres">
+<button id="consultar">Consultar empréstimos</button><pre id="resultado" aria-live="polite">A resposta aparecerá aqui.</pre>
+<p>Abra este arquivo em um editor para estudar o código. Desafio: mostre apenas os empréstimos ainda não devolvidos.</p>
+<script>
+// A API está na internet. Este arquivo é apenas um cliente dela.
+const URL_API = "https://SEU-PROJETO.vercel.app/api/emprestimos";
+const botao = document.getElementById("consultar");
+const resultado = document.getElementById("resultado");
+botao.addEventListener("click", async function () {
+  const chave = document.getElementById("chave").value.trim();
+  if (!/^[a-f0-9]{64}$/.test(chave)) {
+    resultado.textContent = "Cole sua chave de 64 caracteres antes de consultar.";
+    return;
+  }
+  botao.disabled = true;
+  resultado.textContent = "Consultando o servidor...";
+  try {
+    // 1. fetch envia um pedido HTTP; GET significa consultar.
+    const resposta = await fetch(URL_API, {
+      method: "GET",
+      headers: { "Authorization": "Bearer " + chave }
+    });
+    // 2. O servidor devolve JSON. Convertemos esse texto em dados JS.
+    const dados = await resposta.json();
+    // 3. fetch não lança erro automaticamente em respostas HTTP 400/500.
+    if (!resposta.ok) throw new Error(dados.erro || "Erro HTTP " + resposta.status);
+    // 4. Mostramos a resposta como texto, sem interpretar HTML recebido.
+    resultado.textContent = JSON.stringify(dados, null, 2);
+    // Desafio: dados.dados é o array que contém os empréstimos.
+  } catch (erro) {
+    resultado.textContent = "Não foi possível consultar: " + erro.message;
+  } finally {
+    botao.disabled = false;
+  }
+});
+</script></body></html>
